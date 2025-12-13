@@ -1,8 +1,16 @@
+export type PokemonType = {
+  slot: number;
+  type: {
+    name: string;
+    url: string;
+  };
+};
+
 export type Pokemon = {
   id: number;
   name: string;
   sprites: { front_default: string };
-  types: Array<object>;
+  types: PokemonType[];
 };
 
 const pokemonCache: Record<number | string, Pokemon> = {};
