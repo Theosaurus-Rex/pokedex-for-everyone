@@ -45,6 +45,11 @@ export const fetchPokemonList = async (
   const response = await fetch(
     `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`,
   );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Pokemon list: ${response.status}`);
+  }
+
   const pokemonList = await response.json();
 
   return {
