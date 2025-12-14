@@ -1,25 +1,29 @@
-import { useEffect, useState } from "react";
-import {
-  fetchPokemon,
-  fetchPokemonList,
-  type Pokemon,
-} from "../services/pokemonService";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPokemon, fetchPokemonList } from "../services/pokemonService";
 
 export function usePokemonList() {
-  // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 20;
 
-  // Pokemon Data state
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-
-  // Loading & Error states
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
   const offset = (currentPage - 1) * itemsPerPage;
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["pokemon-list", currentPage, searchTerm],
+    queryFn: async () => {
+      const listData = await fetchPokemonList(offset, itemsPerPage);
+
+      const pokemonPromises = listData.results.map((p) => {
+        return fetchPokemon(p.name);
+      });
+
+      const pokemonDetails = await Promise.all(pokemonPromises);
+
+      return { pokemon: pokemonDetails, totalCount: listData.count };
+    },
+  });
+  const totalPages = data ? Math.ceil(data.totalCount / itemsPerPage) : 0;
 
   const goToNextPage = () => {
     if (currentPage === totalPages) {
@@ -35,39 +39,15 @@ export function usePokemonList() {
     setCurrentPage(currentPage - 1);
   };
 
-  useEffect(() => {
-    async function loadPokemon() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const listData = await fetchPokemonList(offset, itemsPerPage);
-        setTotalCount(listData.count);
-
-        const pokemonPromises = listData.results.map((p) => {
-          return fetchPokemon(p.name);
-        });
-
-        const pokemonDetails = await Promise.all(pokemonPromises);
-
-        setPokemon(pokemonDetails);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "An error occurred");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadPokemon();
-  }, [offset]);
-
   return {
-    pokemon,
+    pokemon: data?.pokemon ?? [],
     isLoading,
-    error,
+    error: error?.message ?? null,
     currentPage,
     totalPages,
     goToNextPage,
     goToPreviousPage,
+    searchTerm,
+    setSearchTerm,
   };
 }
