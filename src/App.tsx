@@ -1,11 +1,35 @@
 import "./App.css";
-import { Pokemon } from "./components/Pokemon";
+import { Loader } from "./components/Loader";
+import { PokemonGrid } from "./components/PokemonGrid";
+import { usePokemonList } from "./hooks/usePokemonList";
 
 function App() {
+  const {
+    pokemon,
+    isLoading,
+    error,
+    currentPage,
+    totalPages,
+    goToNextPage,
+    goToPreviousPage,
+  } = usePokemonList();
   return (
     <>
       <h1 className="font-orbitron text-4xl font-bold">Pokédex</h1>
-      <Pokemon id={32} />
+      {isLoading && <Loader />}
+      {error && <p>Something went wrong: {error}</p>}
+      {!isLoading && !error && <PokemonGrid pokemon={pokemon} />}
+      <div className="flex space-x-4">
+        <button onClick={goToPreviousPage} disabled={currentPage === 1}>
+          Previous
+        </button>
+        <p>
+          Page {currentPage} of {totalPages}
+        </p>
+        <button onClick={goToNextPage} disabled={currentPage === totalPages}>
+          Next
+        </button>
+      </div>
     </>
   );
 }
