@@ -5,6 +5,7 @@ import {
   fetchPokemon,
   fetchPokemonList,
 } from "../services/pokemonService";
+import type { PokemonListState } from "../types/pokemon";
 
 export function usePokemonList() {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -51,6 +52,26 @@ export function usePokemonList() {
       }
     },
   });
+
+  const state: PokemonListState = (() => {
+    if (isLoading) {
+      return { status: "loading" };
+    }
+
+    if (error) {
+      return {
+        status: "error",
+        error: error.message,
+      };
+    }
+
+    return {
+      status: "success",
+      pokemon: data?.pokemon ?? [],
+      totalCount: data?.totalCount ?? 0,
+    };
+  })();
+
   const totalPages = data ? Math.ceil(data.totalCount / itemsPerPage) : 0;
 
   const goToNextPage = () => {
@@ -73,9 +94,7 @@ export function usePokemonList() {
   };
 
   return {
-    pokemon: data?.pokemon ?? [],
-    isLoading,
-    error: error?.message ?? null,
+    state,
     currentPage,
     totalPages,
     goToNextPage,
