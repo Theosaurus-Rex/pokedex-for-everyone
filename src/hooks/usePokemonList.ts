@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPokemon, fetchPokemonList } from "../services/pokemonService";
+import {
+  fetchAllPokemonNames,
+  fetchPokemon,
+  fetchPokemonList,
+} from "../services/pokemonService";
 
 export function usePokemonList() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState("");
+
   const itemsPerPage = 20;
 
   const offset = (currentPage - 1) * itemsPerPage;
@@ -12,15 +17,38 @@ export function usePokemonList() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["pokemon-list", currentPage, searchTerm],
     queryFn: async () => {
-      const listData = await fetchPokemonList(offset, itemsPerPage);
+      if (searchTerm) {
+        const names = await fetchAllPokemonNames();
+        const filteredNames = names?.filter((name) =>
+          name.name.toLowerCase().includes(searchTerm),
+        );
 
-      const pokemonPromises = listData.results.map((p) => {
-        return fetchPokemon(p.name);
-      });
+        const currentPageNames = filteredNames?.slice(
+          offset,
+          offset + itemsPerPage,
+        );
 
-      const pokemonDetails = await Promise.all(pokemonPromises);
+        const pokemonPromises = currentPageNames?.map((p) => {
+          return fetchPokemon(p.name);
+        });
 
-      return { pokemon: pokemonDetails, totalCount: listData.count };
+        const pokemonDetails = await Promise.all(pokemonPromises ?? []);
+
+        return {
+          pokemon: pokemonDetails,
+          totalCount: filteredNames?.length ?? 0,
+        };
+      } else {
+        const listData = await fetchPokemonList(offset, itemsPerPage);
+
+        const pokemonPromises = listData.results.map((p) => {
+          return fetchPokemon(p.name);
+        });
+
+        const pokemonDetails = await Promise.all(pokemonPromises);
+
+        return { pokemon: pokemonDetails, totalCount: listData.count };
+      }
     },
   });
   const totalPages = data ? Math.ceil(data.totalCount / itemsPerPage) : 0;
@@ -39,6 +67,11 @@ export function usePokemonList() {
     setCurrentPage(currentPage - 1);
   };
 
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
+
   return {
     pokemon: data?.pokemon ?? [],
     isLoading,
@@ -48,6 +81,6 @@ export function usePokemonList() {
     goToNextPage,
     goToPreviousPage,
     searchTerm,
-    setSearchTerm,
+    setSearchTerm: handleSearch,
   };
 }

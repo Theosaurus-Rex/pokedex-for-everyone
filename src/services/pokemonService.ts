@@ -14,6 +14,7 @@ export type Pokemon = {
 };
 
 const pokemonCache: Record<number | string, Pokemon> = {};
+let allPokemonNamesCache: Array<{ name: string; url: string }> | null = null;
 
 export const fetchPokemon = async (id: number | string): Promise<Pokemon> => {
   if (pokemonCache[id]) {
@@ -29,6 +30,17 @@ export const fetchPokemon = async (id: number | string): Promise<Pokemon> => {
   const pokemon = await response.json();
   pokemonCache[id] = pokemon;
   return pokemon;
+};
+
+export const fetchAllPokemonNames = async () => {
+  if (allPokemonNamesCache) {
+    return allPokemonNamesCache;
+  }
+
+  const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=1500");
+  const data = await response.json();
+  allPokemonNamesCache = data.results;
+  return allPokemonNamesCache;
 };
 
 type PokemonListResults = {
