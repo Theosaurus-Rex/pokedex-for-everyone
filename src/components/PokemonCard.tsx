@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { PokemonType } from "../services/pokemonService";
 
 const typeColors: Record<string, { bg: string; text: string }> = {
@@ -30,29 +31,31 @@ type PokemonCardProps = {
 
 export function PokemonCard({ id, name, spriteURL, types }: PokemonCardProps) {
   return (
-    <div className="bg-white border-2 border-gray-800 rounded-lg p-4 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer">
-      <img
-        src={spriteURL}
-        alt={`${name} front sprite`}
-        className="w-24 h-24 mx-auto mb-2"
-      />
-      <h2 className="capitalize font-bold text-gray-800 my-2">{name}</h2>
-      <p className="text-gray-500 text-sm">{`#${id.toString().padStart(3, "0")}`}</p>
-      <div className="flex gap-2 justify-center flex-wrap mt-2">
-        {types.map((type) => {
-          const typeName = type.type.name;
-          const colors = typeColors[typeName] ?? { bg: "#888", text: "#fff" };
-          return (
-            <span
-              key={typeName}
-              className="px-3 py-1 rounded-md text-xs font-bold uppercase shadow-sm"
-              style={{ backgroundColor: colors.bg, color: colors.text }}
-            >
-              {typeName}
-            </span>
-          );
-        })}
+    <Link to={`/pokemon/${id}`}>
+      <div className="bg-white border-2 border-gray-800 rounded-lg p-4 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+        <img
+          src={spriteURL}
+          alt={`${name} front sprite`}
+          className="w-24 h-24 mx-auto mb-2"
+        />
+        <h2 className="capitalize font-bold text-gray-800 my-2">{name}</h2>
+        <p className="text-gray-500 text-sm">{`#${id.toString().padStart(3, "0")}`}</p>
+        <div className="flex gap-2 justify-center flex-wrap mt-2">
+          {types.map((type) => {
+            const typeName = type.type.name;
+            const colors = typeColors[typeName] ?? { bg: "#888", text: "#fff" };
+            return (
+              <span
+                key={typeName}
+                className="px-3 py-1 rounded-md text-xs font-bold uppercase shadow-sm"
+                style={{ backgroundColor: colors.bg, color: colors.text }}
+              >
+                {typeName}
+              </span>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
