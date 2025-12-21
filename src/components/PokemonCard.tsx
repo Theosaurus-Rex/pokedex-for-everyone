@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { PokemonType } from "../services/pokemonService";
+import type { PokemonType } from "../types/pokemon";
 
 const typeColors: Record<string, { bg: string; text: string }> = {
   normal: { bg: "#a8a878", text: "#fff" },

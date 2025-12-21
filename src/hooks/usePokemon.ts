@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { fetchPokemon, type Pokemon } from "../services/pokemonService";
+import { fetchPokemon } from "../services/pokemonService";
+import type { Pokemon } from "../types/pokemon";
 
-export function usePokemon(id: number | string) {
+export function usePokemon(id: number | string | undefined) {
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
   const [loading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
+    // Capture narrowed value to pass to nested try/catch fetchPokemon call
+    const pokemonId = id;
     let cancelled: boolean = false;
 
     async function loadPokemon() {
@@ -14,7 +18,7 @@ export function usePokemon(id: number | string) {
       setError(null);
 
       try {
-        const data = await fetchPokemon(id);
+        const data = await fetchPokemon(pokemonId);
         if (!cancelled) {
           setPokemon(data);
         }

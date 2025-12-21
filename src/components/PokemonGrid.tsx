@@ -1,4 +1,4 @@
-import type { Pokemon } from "../services/pokemonService";
+import type { Pokemon } from "../types/pokemon";
 import { PokemonCard } from "./PokemonCard";
 
 type PokemonGridProps = {

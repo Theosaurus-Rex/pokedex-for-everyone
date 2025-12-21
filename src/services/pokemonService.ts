@@ -1,17 +1,4 @@
-export type PokemonType = {
-  slot: number;
-  type: {
-    name: string;
-    url: string;
-  };
-};
-
-export type Pokemon = {
-  id: number;
-  name: string;
-  sprites: { front_default: string };
-  types: PokemonType[];
-};
+import type { Pokemon } from "../types/pokemon";
 
 const pokemonCache: Record<number | string, Pokemon> = {};
 let allPokemonNamesCache: Array<{ name: string; url: string }> | null = null;
