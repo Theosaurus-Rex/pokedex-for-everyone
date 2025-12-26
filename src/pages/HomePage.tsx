@@ -1,5 +1,6 @@
 import { Loader } from "../components/Loader";
 import { PokemonGrid } from "../components/PokemonGrid";
+import { TypeFilter } from "../components/TypeFilter";
 import { usePokemonList } from "../hooks/usePokemonList";
 
 function HomePage() {
@@ -11,6 +12,8 @@ function HomePage() {
     goToPreviousPage,
     searchTerm,
     setSearchTerm,
+    selectedType,
+    setSelectedType,
   } = usePokemonList();
 
   return (
@@ -26,6 +29,7 @@ function HomePage() {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="w-full max-w-xl px-4 py-3 text-base border-2 border-gray-800 rounded-lg bg-white mb-6 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-200 transition-all"
       />
+      <TypeFilter selectedType={selectedType} onTypeChange={setSelectedType} />
 
       {state.status === "loading" && <Loader />}
 

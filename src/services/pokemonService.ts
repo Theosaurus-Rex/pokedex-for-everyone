@@ -58,3 +58,33 @@ export const fetchPokemonList = async (
     count: pokemonList.count,
   };
 };
+
+// Cache for type results
+const typeCache: Record<string, Array<{ name: string; url: string }>> = {};
+
+export const fetchPokemonByType = async (
+  type: string,
+): Promise<Array<{ name: string; url: string }>> => {
+  if (typeCache[type]) {
+    return typeCache[type];
+  }
+
+  const response = await fetch(`https://pokeapi.co/api/v2/type/${type}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch type: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  // The API returns { pokemon: [{ pokemon: { name, url }, slot }] }
+  const pokemonList = data.pokemon.map(
+    (p: { pokemon: { name: string; url: string } }) => ({
+      name: p.pokemon.name,
+      url: p.pokemon.url,
+    }),
+  );
+
+  typeCache[type] = pokemonList;
+  return pokemonList;
+};

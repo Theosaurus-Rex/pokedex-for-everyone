@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchAllPokemonNames,
   fetchPokemon,
+  fetchPokemonByType,
   fetchPokemonList,
 } from "../services/pokemonService";
 import type { PokemonListState } from "../types/pokemon";
@@ -10,18 +11,43 @@ import type { PokemonListState } from "../types/pokemon";
 export function usePokemonList() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedType, setSelectedType] = useState("");
 
   const itemsPerPage = 20;
 
   const offset = (currentPage - 1) * itemsPerPage;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["pokemon-list", currentPage, searchTerm],
+    queryKey: ["pokemon-list", currentPage, searchTerm, selectedType],
     queryFn: async () => {
+      // Case 1: Both search and type filter
+      if (searchTerm && selectedType) {
+        const typeResults = await fetchPokemonByType(selectedType);
+        const filteredByName = typeResults.filter((p) =>
+          p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+
+        const currentPageNames = filteredByName.slice(
+          offset,
+          offset + itemsPerPage,
+        );
+
+        const pokemonPromises = currentPageNames.map((p) =>
+          fetchPokemon(p.name),
+        );
+        const pokemonDetails = await Promise.all(pokemonPromises);
+
+        return {
+          pokemon: pokemonDetails,
+          totalCount: filteredByName.length,
+        };
+      }
+
+      // Case 2: Search only (no type filter)
       if (searchTerm) {
         const names = await fetchAllPokemonNames();
         const filteredNames = names?.filter((name) =>
-          name.name.toLowerCase().includes(searchTerm),
+          name.name.toLowerCase().includes(searchTerm.toLowerCase()),
         );
 
         const currentPageNames = filteredNames?.slice(
@@ -29,27 +55,47 @@ export function usePokemonList() {
           offset + itemsPerPage,
         );
 
-        const pokemonPromises = currentPageNames?.map((p) => {
-          return fetchPokemon(p.name);
-        });
-
+        const pokemonPromises = currentPageNames?.map((p) =>
+          fetchPokemon(p.name),
+        );
         const pokemonDetails = await Promise.all(pokemonPromises ?? []);
 
         return {
           pokemon: pokemonDetails,
           totalCount: filteredNames?.length ?? 0,
         };
-      } else {
-        const listData = await fetchPokemonList(offset, itemsPerPage);
+      }
 
-        const pokemonPromises = listData.results.map((p) => {
-          return fetchPokemon(p.name);
-        });
+      // Case 3: Type filter only (no search)
+      if (selectedType) {
+        const typeResults = await fetchPokemonByType(selectedType);
 
+        const currentPageNames = typeResults.slice(
+          offset,
+          offset + itemsPerPage,
+        );
+
+        const pokemonPromises = currentPageNames.map((p) =>
+          fetchPokemon(p.name),
+        );
         const pokemonDetails = await Promise.all(pokemonPromises);
 
-        return { pokemon: pokemonDetails, totalCount: listData.count };
+        return {
+          pokemon: pokemonDetails,
+          totalCount: typeResults.length,
+        };
       }
+
+      // Case 4: No filters - normal pagination
+      const listData = await fetchPokemonList(offset, itemsPerPage);
+
+      const pokemonPromises = listData.results.map((p) => fetchPokemon(p.name));
+      const pokemonDetails = await Promise.all(pokemonPromises);
+
+      return {
+        pokemon: pokemonDetails,
+        totalCount: listData.count,
+      };
     },
   });
 
@@ -93,6 +139,11 @@ export function usePokemonList() {
     setCurrentPage(1);
   };
 
+  const handleTypeChange = (type: string) => {
+    setSelectedType(type);
+    setCurrentPage(1);
+  };
+
   return {
     state,
     currentPage,
@@ -101,5 +152,7 @@ export function usePokemonList() {
     goToPreviousPage,
     searchTerm,
     setSearchTerm: handleSearch,
+    selectedType,
+    setSelectedType: handleTypeChange,
   };
 }
