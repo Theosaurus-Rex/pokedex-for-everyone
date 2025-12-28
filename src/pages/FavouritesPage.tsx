@@ -1,8 +1,8 @@
 import { useQueries } from "@tanstack/react-query";
-import { useFavorites } from "../hooks/useFavorites";
 import { fetchPokemon } from "../services/pokemonService";
 import { Loader } from "../components/Loader";
 import { PokemonGrid } from "../components/PokemonGrid";
+import { useFavorites } from "../context/FavoritesContext";
 
 function FavoritesPage() {
   const { favorites } = useFavorites();
