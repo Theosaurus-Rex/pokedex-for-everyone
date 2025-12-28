@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
 import { Loader } from "../components/Loader";
 import { PokemonGrid } from "../components/PokemonGrid";
 import { TypeFilter } from "../components/TypeFilter";
 import { usePokemonList } from "../hooks/usePokemonList";
+import { useFavorites } from "../context/FavoritesContext";
 
 function HomePage() {
   const {
@@ -15,11 +18,19 @@ function HomePage() {
     selectedType,
     setSelectedType,
   } = usePokemonList();
+  const { favorites } = useFavorites();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
-      <header className="bg-red-600 text-white p-4 text-center rounded-lg border-2 border-gray-800 w-full max-w-6xl mb-6">
+      <header className="bg-red-600 text-white p-4 rounded-lg border-2 border-gray-800 w-full max-w-6xl mb-6 flex items-center justify-between">
         <h1 className="font-orbitron text-4xl font-bold uppercase">Pokédex</h1>
+        <Link
+          to="/favorites"
+          className="flex items-center gap-2 bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+        >
+          <Heart size={20} className="fill-red-500 text-red-500" />
+          <span>{favorites.length}</span>
+        </Link>
       </header>
 
       <input

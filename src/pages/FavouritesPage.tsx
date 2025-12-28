@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
 import { fetchPokemon } from "../services/pokemonService";
 import { Loader } from "../components/Loader";
@@ -22,10 +23,17 @@ function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
-      <header className="bg-red-600 text-white p-4 text-center rounded-lg border-2 border-gray-800 w-full max-w-6xl mb-6">
+      <header className="bg-red-600 text-white p-4 rounded-lg border-2 border-gray-800 w-full max-w-6xl mb-6 flex items-center justify-between">
+        <Link
+          to="/"
+          className="bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+        >
+          ← Back
+        </Link>
         <h1 className="font-orbitron text-4xl font-bold uppercase">
           Favorites
         </h1>
+        <div className="w-[72px]" />
       </header>
 
       {isLoading && <Loader />}
