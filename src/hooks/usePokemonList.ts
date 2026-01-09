@@ -7,6 +7,19 @@ import {
   fetchPokemonList,
 } from "../services/pokemonService";
 import type { PokemonListState } from "../types/pokemon";
+import { matchesSearchTerm } from "../utils/pokemon";
+
+type PokemonNameEntry = { name: string; url: string };
+
+async function fetchPokemonDetailsForPage(
+  pokemonNames: PokemonNameEntry[],
+  offset: number,
+  limit: number,
+) {
+  const pageNames = pokemonNames.slice(offset, offset + limit);
+  const pokemonPromises = pageNames.map((p) => fetchPokemon(p.name));
+  return Promise.all(pokemonPromises);
+}
 
 export function usePokemonList() {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -24,18 +37,13 @@ export function usePokemonList() {
       if (searchTerm && selectedType) {
         const typeResults = await fetchPokemonByType(selectedType);
         const filteredByName = typeResults.filter((p) =>
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+          matchesSearchTerm(p.name, searchTerm),
         );
-
-        const currentPageNames = filteredByName.slice(
+        const pokemonDetails = await fetchPokemonDetailsForPage(
+          filteredByName,
           offset,
-          offset + itemsPerPage,
+          itemsPerPage,
         );
-
-        const pokemonPromises = currentPageNames.map((p) =>
-          fetchPokemon(p.name),
-        );
-        const pokemonDetails = await Promise.all(pokemonPromises);
 
         return {
           pokemon: pokemonDetails,
@@ -46,39 +54,28 @@ export function usePokemonList() {
       // Case 2: Search only (no type filter)
       if (searchTerm) {
         const names = await fetchAllPokemonNames();
-        const filteredNames = names?.filter((name) =>
-          name.name.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
-
-        const currentPageNames = filteredNames?.slice(
+        const filteredNames =
+          names?.filter((p) => matchesSearchTerm(p.name, searchTerm)) ?? [];
+        const pokemonDetails = await fetchPokemonDetailsForPage(
+          filteredNames,
           offset,
-          offset + itemsPerPage,
+          itemsPerPage,
         );
-
-        const pokemonPromises = currentPageNames?.map((p) =>
-          fetchPokemon(p.name),
-        );
-        const pokemonDetails = await Promise.all(pokemonPromises ?? []);
 
         return {
           pokemon: pokemonDetails,
-          totalCount: filteredNames?.length ?? 0,
+          totalCount: filteredNames.length,
         };
       }
 
       // Case 3: Type filter only (no search)
       if (selectedType) {
         const typeResults = await fetchPokemonByType(selectedType);
-
-        const currentPageNames = typeResults.slice(
+        const pokemonDetails = await fetchPokemonDetailsForPage(
+          typeResults,
           offset,
-          offset + itemsPerPage,
+          itemsPerPage,
         );
-
-        const pokemonPromises = currentPageNames.map((p) =>
-          fetchPokemon(p.name),
-        );
-        const pokemonDetails = await Promise.all(pokemonPromises);
 
         return {
           pokemon: pokemonDetails,
@@ -88,9 +85,11 @@ export function usePokemonList() {
 
       // Case 4: No filters - normal pagination
       const listData = await fetchPokemonList(offset, itemsPerPage);
-
-      const pokemonPromises = listData.results.map((p) => fetchPokemon(p.name));
-      const pokemonDetails = await Promise.all(pokemonPromises);
+      const pokemonDetails = await fetchPokemonDetailsForPage(
+        listData.results,
+        0,
+        itemsPerPage,
+      );
 
       return {
         pokemon: pokemonDetails,
