@@ -25,6 +25,11 @@ export const fetchAllPokemonNames = async () => {
   }
 
   const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=1500");
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Pokemon names: ${response.status}`);
+  }
+
   const data = await response.json();
   allPokemonNamesCache = data.results;
   return allPokemonNamesCache;
