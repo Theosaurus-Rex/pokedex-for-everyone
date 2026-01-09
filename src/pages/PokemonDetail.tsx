@@ -2,6 +2,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { usePokemon } from "../hooks/usePokemon";
 import { Loader } from "../components/Loader";
 import { TypeBadge } from "../components/TypeBadge";
+import {
+  formatPokemonId,
+  formatName,
+  calculateStatPercentage,
+} from "../utils/pokemon";
 
 function PokemonDetail() {
   const { id } = useParams<{ id: string }>();
@@ -56,7 +61,7 @@ function PokemonDetail() {
               {pokemon.name}
             </h1>
             <p className="text-xl text-gray-500 mb-4">
-              #{pokemon.id.toString().padStart(3, "0")}
+              #{formatPokemonId(pokemon.id)}
             </p>
             <div className="flex gap-2 flex-wrap">
               {pokemon.types.map((type) => (
@@ -75,12 +80,12 @@ function PokemonDetail() {
               className="grid grid-cols-[120px_1fr_50px] items-center gap-4 mb-3"
             >
               <span className="capitalize font-bold text-gray-800">
-                {stat.stat.name.replace("-", " ")}
+                {formatName(stat.stat.name)}
               </span>
               <div className="bg-gray-200 rounded-full h-5 border-2 border-gray-800 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-linear-to-r from-green-500 to-orange-500"
-                  style={{ width: `${(stat.base_stat / 255) * 100}%` }}
+                  style={{ width: `${calculateStatPercentage(stat.base_stat)}%` }}
                 />
               </div>
               <span className="text-right font-bold text-gray-800">
@@ -99,7 +104,7 @@ function PokemonDetail() {
                 key={ability.ability.name}
                 className="capitalize py-2 text-gray-800"
               >
-                {ability.ability.name.replace("-", " ")}
+                {formatName(ability.ability.name)}
                 {ability.is_hidden && (
                   <span className="ml-2 text-sm text-gray-500">(Hidden)</span>
                 )}

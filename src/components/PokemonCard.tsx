@@ -3,6 +3,7 @@ import type { PokemonType } from "../types/pokemon";
 import { TypeBadge } from "./TypeBadge";
 import { Heart } from "lucide-react";
 import { useFavorites } from "../context/FavoritesContext";
+import { formatPokemonId } from "../utils/pokemon";
 
 type PokemonCardProps = {
   id: number;
@@ -37,7 +38,7 @@ export function PokemonCard({ id, name, spriteURL, types }: PokemonCardProps) {
           className="w-24 h-24 mx-auto mb-2"
         />
         <h2 className="capitalize font-bold text-gray-800 my-2">{name}</h2>
-        <p className="text-gray-500 text-sm">{`#${id.toString().padStart(3, "0")}`}</p>
+        <p className="text-gray-500 text-sm">#{formatPokemonId(id)}</p>
         <div className="flex gap-2 justify-center flex-wrap mt-2">
           {types.map((type) => (
             <TypeBadge key={type.type.name} typeName={type.type.name} />
